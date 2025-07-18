@@ -1,0 +1,21 @@
+    # JUMP - THE - JUMP #
+
+the selected pet will move from left to right automatically 
+there will be two obstacle 
+1. the gap
+	-you jump over the gap 
+	-if you fell under the gap - you fail
+
+2.the block
+	- you jump over the block
+	- you touch it - you fail
+	
+how the jump will be jump 
+	- window => space bar
+	-mobile =>  tap the screen or jump button (but I prefer tap the screen to jump) 
+	
+there will be 5 different game levels (*should be fair though*)
+	-increase selected pet automated speed
+	- more obstacle (but  should fair - keep the game fun - just make it more exciting)
+	- longer game time 
+	

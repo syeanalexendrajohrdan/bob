@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Pixelify+Sans&display=swap"
+      rel="stylesheet"
+    />
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>🎮 Virtual Pet Adventure</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div id="appContainer">
+      <!-- Pet Selection Screen -->
+      <div id="petSelectScreen">
+        <h1>🌟 Choose Your Pet 🌟</h1>
+        <p class="selection-desc">Pick a companion for your adventure!</p>
+        <div class="petButtonContainer">
+          <button onclick="selectPet('🐶')" class="pet-choice">
+            <span class="pet-emoji">🐶</span>
+            <span class="pet-name">Puppy</span>
+          </button>
+          <button onclick="selectPet('🐱')" class="pet-choice">
+            <span class="pet-emoji">🐱</span>
+            <span class="pet-name">Kitty</span>
+          </button>
+          <button onclick="selectPet('🐰')" class="pet-choice">
+            <span class="pet-emoji">🐰</span>
+            <span class="pet-name">Bunny</span>
+          </button>
+          <button onclick="selectPet('🐻')" class="pet-choice">
+            <span class="pet-emoji">🐻</span>
+            <span class="pet-name">Bear</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Game Screen -->
+      <div id="mainPlane">
+        <div class="game-header">
+          <h1>🌟 MY PET 🌟</h1>
+          <p id="petLevel" class="level-badge">Level 1 (XP: 0)</p>
+        </div>
+
+        <div id="petDisplay" class="pet-avatar"></div>
+        <p id="petMood" class="mood-bubble">I'm feeling: Neutral</p>
+
+        <div class="statusBars">
+          <div class="stat-container">
+            <label>Hunger</label>
+            <div class="progress-wrapper">
+              <progress id="hungerBar" value="50" max="100"></progress>
+              <span class="stat-value" id="hungerValue">50</span>
+            </div>
+          </div>
+          <div class="stat-container">
+            <label>Happiness</label>
+            <div class="progress-wrapper">
+              <progress id="happinessBar" value="50" max="100"></progress>
+              <span class="stat-value" id="happinessValue">50</span>
+            </div>
+          </div>
+          <div class="stat-container">
+            <label>Energy</label>
+            <div class="progress-wrapper">
+              <progress id="energyBar" value="50" max="100"></progress>
+              <span class="stat-value" id="energyValue">50</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="buttonColumn">
+          <button onclick="feedPet()" class="action-btn">🍎 Feed</button>
+          <button onclick="petPet()" class="action-btn">💖 Pet</button>
+          <button onclick="playPet()" class="action-btn">🎾 Play</button>
+          <button onclick="cleanPet()" class="action-btn">🧽 Clean</button>
+          <button onclick="restPet()" class="action-btn">🛌 Rest</button>
+          <button onclick="openMiniGameSession()" class="action-btn special">🎮 Mini Games</button>
+        </div>
+      </div>
+
+      <!-- Mini Game Container -->
+      <div id="miniGameContainer">
+        <div class="miniGameHeader">
+          <h2>🎮 MINI GAMES 🎮</h2>
+          <p id="miniGameMessage"></p>
+        </div>
+        <div id="miniGameContent"></div>
+        <div class="miniGameFooter">
+          <button onclick="exitMiniGame()" class="back-btn">⬅️ Back to Pet</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./index.js"></script>
+  </body>
+</html>
