@@ -227,7 +227,7 @@ progress::-webkit-progress-value {
   width: 200%;
   height: 200%;
   background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  opacity: 0;
+  opacity: 0; 
   transition: opacity 0.3s;
 }
 
@@ -264,6 +264,8 @@ progress::-webkit-progress-value {
 
 /* Game Canvas Styles */
 canvas {
+  width: 100%;
+  height: 100%;
   border-radius: 20px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
