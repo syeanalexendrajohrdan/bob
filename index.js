@@ -17,9 +17,11 @@ function setRandomMessage(messageArray) {
 let selectedEmoji = "";
 let xp = 0, level = 1;
 let hunger = 50, happiness = 50, energy = 50;
+let hasRunAway = false
 
 /* -------------------- PET SELECTION -------------------- */
 function selectPet(emoji) {
+  hasRunAway = false;
   selectedEmoji = emoji;
   document.getElementById("petSelectScreen").style.display = "none";
   document.getElementById("mainPlane").style.display = "flex";
@@ -36,6 +38,7 @@ function selectPet(emoji) {
 
 /* -------------------- PET ACTIONS -------------------- */
 function feedPet() {
+  if (hasRunAway) return;
   xp += 5;
   hunger = Math.min(hunger + 20, 100);
   energy = Math.min(energy + 10, 100);
@@ -47,6 +50,7 @@ function feedPet() {
 }
 
 function petPet() {
+  if (hasRunAway) return;
   xp += 5;
   happiness = Math.min(happiness + 20, 100);
   setRandomMessage([
@@ -57,6 +61,7 @@ function petPet() {
 }
 
 function playPet() {
+  if (hasRunAway) return;
   xp += 5;
   if (energy >= 10) {
     happiness = Math.min(happiness + 15, 100);
@@ -75,6 +80,7 @@ function playPet() {
 }
 
 function cleanPet() {
+  if(hasRunAway) return;
   xp += 5;
   if (energy >= 5) {
     happiness = Math.min(happiness + 20, 100);
@@ -92,6 +98,7 @@ function cleanPet() {
 }
 
 function restPet() {
+  if(hasRunAway) return;
   if (hunger >= 10) {
     xp += 5;
     energy = Math.min(energy + 30, 100);
@@ -119,6 +126,7 @@ function updateStatus() {
   document.getElementById("energyValue").textContent = energy;
 
   if (hunger === 0 || happiness === 0 || energy === 0) {
+    hasRunAway = true;
     document.getElementById("petDisplay").textContent = "😭";
     document.getElementById("petMood").textContent = "Your pet ran away!";
     return;
@@ -766,6 +774,7 @@ function loadGameState() {
 }
 
 function resetGame() {
+  hasRunAway = false;
   if (confirm("Are you sure you want to choose another pet?")) {
     selectedEmoji = "";
     xp = 0;
