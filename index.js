@@ -712,12 +712,12 @@ function endCatchGame(success) {
   }
 };
 /* -------------------- GAME CONSTANTS & AUDIO -------------------- */
-const SOUNDS = {
+/*const SOUNDS = {
   jump: new Audio('data:audio/wav;base64,UklGRjIGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQ4GAAD//...'),
   collect: new Audio('data:audio/wav;base64,UklGRjIGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQ4GAAD//...'),
   levelUp: new Audio('data:audio/wav;base64,UklGRjIGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQ4GAAD//...'),
-  fail: new Audio('data:audio/wav;base64,UklGRjIGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQ4GAAD//...')
-};
+  fail: new Audio('data:audio/wav;base64,UklGRjIGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQ4GAAD//...').
+};*/
 
 const GAME_CONSTANTS = {
   PET_SIZE: 48,
@@ -762,6 +762,28 @@ function loadGameState() {
       document.getElementById("petDisplay").textContent = selectedEmoji;
       updateStatus();
     }
+  }
+}
+
+function resetGame() {
+  if (confirm("Are you sure you want to choose another pet?")) {
+    selectedEmoji = "";
+    xp = 0;
+    level = 1;
+    hunger = 50;
+    happiness = 50;
+    energy = 50;
+
+    document.getElementById("mainPlane").style.display = "none";
+    document.getElementById("miniGameContainer").style.display = "none";
+    document.getElementById("petSelectScreen").style.display = "block";
+
+    document.getElementById("petDisplay").textContent = "";
+    document.getElementById("petMood").textContent = "";
+    document.getElementById("miniGameContent").innerHTML = "";
+    document.getElementById("miniGameMessage").textContent = "";
+
+    localStorage.removeItem("virtualPetGame");
   }
 }
 
