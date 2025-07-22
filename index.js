@@ -191,12 +191,22 @@ function exitMiniGame() {
 function showMiniGameSelection() {
   setMiniGameContent(`
     <div class="gameSelectMenu">
-      <p>Pick a mini-game to play:</p>
-      <button onclick="startJumpGame()">🎾 Jump the Jump</button>
-      <button onclick="startCatchGame()">🍬 Catch the Treat</button>
+      <button onclick="startJumpGame()" class="game-choice">
+        <span class="game-icon">🎾</span>
+        <div class="game-info">
+          <div class="game-title">Jump the Jump</div>
+          <div class="game-desc">Help your pet avoid obstacles and gaps!</div>
+        </div>
+      </button>
+      <button onclick="startCatchGame()" class="game-choice">
+        <span class="game-icon">🍬</span>
+        <div class="game-info">
+          <div class="game-title">Catch the Treat</div>
+          <div class="game-desc">Catch treats and avoid bad items!</div>
+        </div>
+      </button>
     </div>
   `);
-  document.getElementById("miniGameMessage").textContent = "Choose a mini-game!";
 }
 
 /* -------------------- JUMP THE JUMP GAME -------------------- */
@@ -297,6 +307,7 @@ function generateObstacles() {
 
 function handleJumpGameKey(e) {
   if (e.code === "Space" && !jumpGameIsJumping && jumpGameRunning) {
+    e.preventDefault(); // Prevent page scrolling
     jumpGameJumpVelocity = -8;
     jumpGameIsJumping = true;
   }
@@ -501,8 +512,13 @@ function endJumpGame(win) {
   checkLevelUp();
   jumpGameRunning = false;
 
-  // After 2 seconds, return to main screen
-  setTimeout(exitMiniGame, 2000);
+// Show "Play again?" message
+document.getElementById("miniGameMessage").innerHTML = `
+  ${win ? "🎉 You won! Want to play again?" : "😢 You lost! Try again?"}
+  <br><br>
+  <button onclick="startJumpGame()" style="margin-right: 10px; padding: 5px 15px;">✅ Yes</button>
+  <button onclick="exitMiniGame()" style="padding: 5px 15px;">❌ No</button>
+`;
 }
 
 /* -------------------- CATCH THE TREAT GAME -------------------- */
@@ -538,13 +554,15 @@ function setCatchGameFoodEmoji() {
 
 function startCatchGame() {
   document.querySelector('.miniGameHeader').style.display = 'none';
-
-  setCatchGameFoodEmoji();
-
+  
+  // Calculate canvas size based on viewport
+  const viewportHeight = window.innerHeight;
+  const canvasHeight = Math.min(400, viewportHeight * 0.7);
+  
   setMiniGameContent(`
-    <div id="catchGameScreen" style="position: relative; width: 100%; text-align: center;">
+    <div id="catchGameScreen" style="position: relative; width: 100%; text-align: center; overflow: hidden;">
       <h3 id="catchGameCountdown">GET READY!!</h3>
-      <canvas id="catchGameCanvas" width="400" height="200" style="background: #222;"></canvas>
+      <canvas id="catchGameCanvas" width="400" height="${canvasHeight}" style="background: #222;"></canvas>
       <div id="catchGameMessage" 
         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         font-size: 24px; color: white; background-color: rgba(0, 0, 0, 0.8); 
@@ -552,6 +570,22 @@ function startCatchGame() {
       </div>
     </div>
   `);
+
+  // Improved movement handling
+  const canvas = document.getElementById('catchGameCanvas');
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    catchGamePlayerX = (e.clientX - rect.left) * scaleX;
+  });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const scaleX = canvas.width / rect.width;
+    catchGamePlayerX = (touch.clientX - rect.left) * scaleX;
+  }, { passive: false });
 
   document.getElementById("catchGameMessage").textContent = "";
   runCatchCountdown();
@@ -735,69 +769,269 @@ const GAME_CONSTANTS = {
   COLLISION_BUFFER: 5
 };
 
-// Save game state
-function saveGameState() {
-  const gameState = {
-    selectedEmoji,
-    xp,
-    level,
-    hunger,
-    happiness,
-    energy,
-    catchGameLevel,
-    jumpGameLevel
-  };
-  localStorage.setItem('virtualPetGame', JSON.stringify(gameState));
-}
+// Error handling and utilities
+const GameError = {
+  showError: (message) => {
+    console.error(`[Game Error]: ${message}`);
+    // Show user-friendly error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'game-error';
+    errorDiv.textContent = message;
+    document.body.appendChild(errorDiv);
+    setTimeout(() => errorDiv.remove(), 3000);
+  },
+  
+  validate: {
+    number: (value, min, max, defaultVal) => {
+      const num = Number(value);
+      if (isNaN(num) || num < min || num > max) {
+        GameError.showError(`Invalid value: ${value}. Using default: ${defaultVal}`);
+        return defaultVal;
+      }
+      return num;
+    },
+    
+    state: () => {
+      if (!selectedEmoji || !document.getElementById('petDisplay')) {
+        GameError.showError("Game state is invalid. Resetting...");
+        resetGame(true);
+        return false;
+      }
+      return true;
+    }
+  }
+};
 
-// Load game state
-function loadGameState() {
-  const saved = localStorage.getItem('virtualPetGame');
-  if (saved) {
-    const state = JSON.parse(saved);
+// Add this CSS for error messages
+const errorStyle = `
+  .game-error {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 0, 0, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 9999;
+    animation: fadeInOut 3s ease-in-out;
+  }
+
+  @keyframes fadeInOut {
+    0%, 100% { opacity: 0; }
+    10%, 90% { opacity: 1; }
+  }
+`;
+
+// Add style to document
+const styleSheet = document.createElement("style");
+styleSheet.textContent = errorStyle;
+document.head.appendChild(styleSheet);
+
+// Enhanced state management
+const GameState = {
+  _state: {
+    selectedEmoji: "",
+    xp: 0,
+    level: 1,
+    hunger: 50,
+    happiness: 50,
+    energy: 50,
+    hasRunAway: false,
+    catchGameLevel: 1,
+    jumpGameLevel: 1
+  },
+
+  get: (key) => GameState._state[key],
+  
+  set: (key, value) => {
+    GameState._state[key] = value;
+    GameState.save();
+    return value;
+  },
+
+  save: () => {
+    try {
+      localStorage.setItem('virtualPetGame', JSON.stringify(GameState._state));
+    } catch (e) {
+      GameError.showError("Failed to save game state");
+    }
+  },
+
+  load: () => {
+    try {
+      const saved = localStorage.getItem('virtualPetGame');
+      if (saved) {
+        GameState._state = JSON.parse(saved);
+        return true;
+      }
+    } catch (e) {
+      GameError.showError("Failed to load game state");
+    }
+    return false;
+  },
+
+  reset: () => {
+    GameState._state = {
+      selectedEmoji: "",
+      xp: 0,
+      level: 1,
+      hunger: 50,
+      happiness: 50,
+      energy: 50,
+      hasRunAway: false,
+      catchGameLevel: 1,
+      jumpGameLevel: 1
+    };
+    GameState.save();
+  }
+};
+
+// Enhanced mini-game management
+const MiniGames = {
+  isActive: false,
+  currentGame: null,
+  
+  start: (gameName) => {
+    if (!GameState.validate.state()) return;
+    
+    MiniGames.isActive = true;
+    MiniGames.currentGame = gameName;
+    
+    switch(gameName) {
+      case 'jump':
+        startJumpGame();
+        break;
+      case 'catch':
+        startCatchGame();
+        break;
+      default:
+        GameError.showError("Invalid game selected");
+    }
+  },
+  
+  end: (success) => {
+    if (!MiniGames.isActive) return;
+    
+    MiniGames.isActive = false;
+    const game = MiniGames.currentGame;
+    MiniGames.currentGame = null;
+    
+    try {
+      if (success) {
+        if (game === 'jump') GameState.set('jumpGameLevel', GameState.get('jumpGameLevel') + 1);
+        if (game === 'catch') GameState.set('catchGameLevel', GameState.get('catchGameLevel') + 1);
+        
+        GameState.set('xp', GameState.get('xp') + 10);
+        GameState.set('happiness', Math.min(GameState.get('happiness') + 30, 100));
+      }
+      
+      GameState.set('energy', Math.max(GameState.get('energy') - 10, 0));
+      updateStatus();
+      checkLevelUp();
+      
+    } catch (e) {
+      GameError.showError("Error ending mini-game");
+      console.error(e);
+    }
+  }
+};
+
+// Enhanced input handling
+const InputHandler = {
+  touchStartX: 0,
+  touchStartY: 0,
+  
+  init: () => {
+    document.addEventListener('touchstart', InputHandler.handleTouchStart, false);
+    document.addEventListener('touchmove', InputHandler.handleTouchMove, false);
+    document.addEventListener('keydown', InputHandler.handleKeyDown, false);
+  },
+  
+  cleanup: () => {
+    document.removeEventListener('touchstart', InputHandler.handleTouchStart);
+    document.removeEventListener('touchmove', InputHandler.handleTouchMove);
+    document.removeEventListener('keydown', InputHandler.handleKeyDown);
+  },
+  
+  handleTouchStart: (evt) => {
+    InputHandler.touchStartX = evt.touches[0].clientX;
+    InputHandler.touchStartY = evt.touches[0].clientY;
+  },
+  
+  handleTouchMove: (evt) => {
+    if (!evt.touches[0] || !MiniGames.isActive) return;
+    
+    const xDiff = evt.touches[0].clientX - InputHandler.touchStartX;
+    const yDiff = evt.touches[0].clientY - InputHandler.touchStartY;
+    
+    if (Math.abs(xDiff) > Math.abs(yDiff)) {
+      if (MiniGames.currentGame === 'catch') {
+        evt.preventDefault();
+        handleCatchGameMove(evt.touches[0].clientX);
+      }
+    }
+  },
+  
+  handleKeyDown: (evt) => {
+    if (!MiniGames.isActive) return;
+    
+    switch(evt.code) {
+      case 'Space':
+        if (MiniGames.currentGame === 'jump') handleJumpGameKey(evt);
+        break;
+      case 'ArrowLeft':
+      case 'ArrowRight':
+        if (MiniGames.currentGame === 'catch') {
+          evt.preventDefault();
+          handleCatchGameKey(evt);
+        }
+        break;
+    }
+  }
+};
+
+// Initialize game with error handling
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    InputHandler.init();
+    if (GameState.load()) {
+      updateStatus();
+    }
+  } catch (e) {
+    GameError.showError("Failed to initialize game");
+    console.error(e);
+  }
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+  InputHandler.cleanup();
+  GameState.save();
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  const savedState = localStorage.getItem('virtualPetGame');
+  if (savedState) {
+    const state = JSON.parse(savedState);
     selectedEmoji = state.selectedEmoji;
     xp = state.xp;
     level = state.level;
     hunger = state.hunger;
     happiness = state.happiness;
     energy = state.energy;
-    catchGameLevel = state.catchGameLevel;
-    jumpGameLevel = state.jumpGameLevel;
     
     if (selectedEmoji) {
-      document.getElementById("petSelectScreen").style.display = "none";
-      document.getElementById("mainPlane").style.display = "flex";
+      document.getElementById("petSelectScreen").style.display = "block";
+      document.getElementById("mainPlane").style.display = "none";
       document.getElementById("petDisplay").textContent = selectedEmoji;
       updateStatus();
+    } else {
+      document.getElementById("petSelectScreen").style.display = "block";
+      document.getElementById("mainPlane").style.display = "none";
     }
-  }
-}
-
-function resetGame() {
-  hasRunAway = false;
-  if (confirm("Are you sure you want to choose another pet?")) {
-    selectedEmoji = "";
-    xp = 0;
-    level = 1;
-    hunger = 50;
-    happiness = 50;
-    energy = 50;
-
-    document.getElementById("mainPlane").style.display = "none";
-    document.getElementById("miniGameContainer").style.display = "none";
+  } else {
     document.getElementById("petSelectScreen").style.display = "block";
-
-    document.getElementById("petDisplay").textContent = "";
-    document.getElementById("petMood").textContent = "";
-    document.getElementById("miniGameContent").innerHTML = "";
-    document.getElementById("miniGameMessage").textContent = "";
-
-    localStorage.removeItem("virtualPetGame");
+    document.getElementById("mainPlane").style.display = "none";
   }
-}
-
-document.getElementById("miniGameContainer").style.display = "none";
-document.getElementById("mainPlane").style.display = selectedEmoji ? "flex" :"none";
-
-// Auto-save every minute
-setInterval(saveGameState, 60000);
+});

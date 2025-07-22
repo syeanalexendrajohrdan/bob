@@ -275,6 +275,92 @@ canvas:hover {
   transform: scale(1.01);
 }
 
+/* Enhanced Mini Game Selection */
+.gameSelectMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.game-choice {
+  position: relative;
+  padding: 20px;
+  background: linear-gradient(145deg, #2a2a3a, #1a1a2a);
+  border: none;
+  border-radius: 15px;
+  color: white;
+  font-size: 1.2em;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.game-choice:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.game-choice::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.game-choice:hover::before {
+  transform: translateX(100%);
+}
+
+.game-icon {
+  font-size: 2em;
+}
+
+.game-info {
+  text-align: left;
+}
+
+.game-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.game-desc {
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+
+/* Game Controls */
+.game-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  backdrop-filter: blur(5px);
+}
+
+.control-key {
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
 /* Animations */
 @keyframes float {
   0%, 100% { 
