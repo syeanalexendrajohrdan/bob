@@ -191,14 +191,14 @@ function exitMiniGame() {
 function showMiniGameSelection() {
   setMiniGameContent(`
     <div class="gameSelectMenu">
-      <button onclick="startJumpGame()" class="game-choice">
+      <button onclick="MiniGames.start('jump')" class="game-choice">
         <span class="game-icon">🎾</span>
         <div class="game-info">
           <div class="game-title">Jump the Jump</div>
           <div class="game-desc">Help your pet avoid obstacles and gaps!</div>
         </div>
       </button>
-      <button onclick="startCatchGame()" class="game-choice">
+      <button onclick="MiniGames.start('catch')" class="game-choice">
         <span class="game-icon">🍬</span>
         <div class="game-info">
           <div class="game-title">Catch the Treat</div>
@@ -207,6 +207,7 @@ function showMiniGameSelection() {
       </button>
     </div>
   `);
+  document.getElementById("miniGameMessage").textContent = "Choose a mini-game!";
 }
 
 /* -------------------- JUMP THE JUMP GAME -------------------- */
@@ -514,10 +515,13 @@ function endJumpGame(win) {
 
 // Show "Play again?" message
 document.getElementById("miniGameMessage").innerHTML = `
-  ${win ? "🎉 You won! Want to play again?" : "😢 You lost! Try again?"}
-  <br><br>
-  <button onclick="startJumpGame()" style="margin-right: 10px; padding: 5px 15px;">✅ Yes</button>
-  <button onclick="exitMiniGame()" style="padding: 5px 15px;">❌ No</button>
+  <p style="margin-bottom: 20px; font-size: 1.2em;">
+    ${win ? "🎉 You won! Want to play again?" : "😢 You lost! Try again?"}
+  </p>
+  <div style="display: flex; justify-content: center; gap: 10px;">
+    <button onclick="startJumpGame()">✅ Play Again</button>
+    <button onclick="exitMiniGame()">❌ Back</button>
+  </div>
 `;
 }
 
@@ -527,7 +531,7 @@ let catchGameLevel = 1;
 let catchGameCaught = 0;
 let catchGameRequired = 10;
 
-let catchGameFoodEmoji = "";
+let catchGameFoodEmoji = "🍬";
 let catchGameBadEmojis = ["💣", "💀", "💩"];
 
 let catchGamePlayerX = 150;
@@ -537,6 +541,7 @@ let catchGameDropInterval = null;
 let catchGameDropSpeed = 2;
 
 let catchGameCanvas = null;
+
 let catchGameCtx = null; 
 
 let catchGameIsActive = false;
@@ -738,12 +743,14 @@ function endCatchGame(success) {
 
   messageEl.style.display = "block";
   messageEl.innerHTML = `
-    <p style="margin-bottom: 15px;">${success ? `🎉 Level ${catchGameLevel} Completed!` : `💥 You caught a bad emoji! Try Again!`}</p>
-    <div style="margin-top: 10px;">
-      <button onclick="startCatchGame()" style="margin: 0 5px; padding: 5px 15px;">
+    <p style="margin-bottom: 20px; font-size: 1.2em;">
+      ${success ? `🎉 Level ${catchGameLevel} Completed!` : `💥 You caught a bad emoji! Try Again!`}
+    </p>
+    <div style="display: flex; justify-content: center; gap: 10px;">
+      <button onclick="startCatchGame()">
         🔁 ${success ? "Next Level" : "Try Again"}
       </button>
-      <button onclick="exitMiniGame()" style="margin: 0 5px; padding: 5px 15px;">
+      <button onclick="exitMiniGame()">
         🔙 Back
       </button>
     </div>

@@ -463,3 +463,97 @@ canvas:hover {
   text-align: center;
   margin: 10px auto;
 }
+
+/* Add to your style.css file */
+
+/* Mini Game Buttons */
+.gameSelectMenu button,
+.miniGameFooter button,
+#catchGameMessage button,
+#miniGameMessage button {
+  padding: 15px 25px;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #2a2a3a, #1a1a2a);
+  color: white;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.gameSelectMenu button:hover,
+.miniGameFooter button:hover,
+#catchGameMessage button:hover,
+#miniGameMessage button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.gameSelectMenu button::after,
+.miniGameFooter button::after,
+#catchGameMessage button::after,
+#miniGameMessage button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.gameSelectMenu button:hover::after,
+.miniGameFooter button:hover::after,
+#catchGameMessage button:hover::after,
+#miniGameMessage button:hover::after {
+  opacity: 1;
+}
+
+/* Back button specific styling */
+.back-btn {
+  background: linear-gradient(145deg, #2a2a3a, #1a1a2a) !important;
+  margin-top: 20px;
+  min-width: 120px;
+}
+
+/* Message box buttons */
+#catchGameMessage button,
+#miniGameMessage button {
+  margin: 5px;
+  min-width: 100px;
+}
+
+/* Game selection buttons enhancements */
+.game-choice {
+  margin-bottom: 15px;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  padding: 20px !important;
+}
+
+.game-info {
+  margin-left: 15px;
+}
+
+.game-title {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.game-desc {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+.game-icon {
+  font-size: 2em;
+  min-width: 60px;
+  text-align: center;
+}
