@@ -515,10 +515,13 @@ canvas:hover {
 
 /* Back button specific styling */
 .back-btn {
+  display: block;
+  margin: 0 auto;
   background: linear-gradient(145deg, #2a2a3a, #1a1a2a) !important;
-  margin-top: 20px;
   min-width: 120px;
+  text-align: center;
 }
+
 
 /* Message box buttons */
 #catchGameMessage button,
