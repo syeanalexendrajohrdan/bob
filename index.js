@@ -432,7 +432,7 @@ function runJumpCountdown() {
 function startJumpGameLoop() {
   document.getElementById("miniGameMessage").textContent = "TAP or PRESS SPACE TO JUMP!";
   jumpGameRunning = true;
-  jumpGamePetX = 30;
+  jumpGamePetX = 40;
   jumpGamePetY = 100;
   jumpGameJumpVelocity = 0;
   jumpGameIsJumping = false;
@@ -515,25 +515,25 @@ function updateJumpGame() {
     jumpGamePetY += jumpGameJumpVelocity;
     jumpGameJumpVelocity += 0.5;
     
-    if (jumpGamePetY >= 100) {
-      jumpGamePetY = 100;
+    if (jumpGamePetY >= 0) { // Changed from 100 to 0
+      jumpGamePetY = 0;
       jumpGameIsJumping = false;
       jumpGameJumpVelocity = 0;
     }
   }
 
-  // Draw pet
+  // Draw pet - Fixed positioning to be ON the runway
   ctx.font = "40px serif";
   ctx.fillStyle = "#fff";
-  ctx.fillText(selectedEmoji || "🐶", jumpGamePetX, 170 + jumpGamePetY);
+  ctx.fillText(selectedEmoji || "🐶", jumpGamePetX, 170 - jumpGamePetY); // Fixed: subtract jumpGamePetY from ground level
 
-  // Collision detection
+  // Fixed collision detection
   for (const obstacle of jumpGameObstacles) {
     if (jumpGamePetX + 20 > obstacle.x && jumpGamePetX < obstacle.x + obstacle.width) {
-      if (obstacle.type === "gap" && jumpGamePetY >= 100) {
+      if (obstacle.type === "gap" && jumpGamePetY <= 5) { // Pet on ground and hits gap
         endJumpGame(false);
         return;
-      } else if (obstacle.type === "block" && jumpGamePetY > 60) {
+      } else if (obstacle.type === "block" && jumpGamePetY < 30) { // Pet not high enough to clear block
         endJumpGame(false);
         return;
       }
@@ -613,9 +613,9 @@ function startCatchGame() {
   document.querySelector('.miniGameHeader').style.display = 'none';
   
   setMiniGameContent(`
-    <div id="catchGameScreen" style="position: relative; width: 100%; text-align: center;">
+    <div id="catchGameScreen" style="position: relative; width: 100%; height: 100%; text-align: center; overflow: hidden;">
       <h3 id="catchGameCountdown">GET READY!!</h3>
-      <canvas id="catchGameCanvas" width="400" height="300" style="background: #222;"></canvas>
+      <canvas id="catchGameCanvas" width="400" height="300" style="background: #222; display: block; margin: 0 auto; max-width: 100%; max-height: 70vh;"></canvas>
       <div id="catchGameMessage" 
         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         font-size: 24px; color: white; background-color: rgba(0, 0, 0, 0.8); 
@@ -658,18 +658,21 @@ function startCatchGameLoop() {
   catchGameRequired = 5 + (catchGameLevel * 3);
   catchGameDropSpeed = 2 + (catchGameLevel - 1) * 0.5;
 
-  // Mouse movement
+  // Fixed mouse movement with proper scaling
   catchGameCanvas.addEventListener('mousemove', (e) => {
     const rect = catchGameCanvas.getBoundingClientRect();
-    catchGamePlayerX = e.clientX - rect.left;
+    const scaleX = catchGameCanvas.width / rect.width;
+    const scaleY = catchGameCanvas.height / rect.height;
+    catchGamePlayerX = Math.max(18, Math.min((e.clientX - rect.left) * scaleX, catchGameCanvas.width - 18));
   });
 
-  // Touch movement
+  // Fixed touch movement with proper scaling
   catchGameCanvas.addEventListener('touchmove', (e) => {
     e.preventDefault();
     const rect = catchGameCanvas.getBoundingClientRect();
     const touch = e.touches[0];
-    catchGamePlayerX = touch.clientX - rect.left;
+    const scaleX = catchGameCanvas.width / rect.width;
+    catchGamePlayerX = Math.max(18, Math.min((touch.clientX - rect.left) * scaleX, catchGameCanvas.width - 18));
   }, { passive: false });
 
   startCatchDropInterval();
@@ -811,3 +814,31 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Auto-save every 30 seconds
 setInterval(saveGameState, 30000);
+
+/* -------------------- CSS STYLES -------------------- */
+const additionalCSS = `
+  /* Prevent scroll bars in mini-games */
+  #miniGameContainer {
+    overflow: hidden !important;
+  }
+  
+  #miniGameContent {
+    overflow: hidden !important;
+    max-height: 80vh;
+  }
+  
+  #catchGameScreen, #jumpGameScreen {
+    overflow: hidden !important;
+  }
+  
+  canvas {
+    max-width: 100% !important;
+    max-height: 70vh !important;
+    object-fit: contain;
+  }
+`;
+
+// Add the CSS to the document
+const style = document.createElement('style');
+style.textContent = additionalCSS;
+document.head.appendChild(style);
