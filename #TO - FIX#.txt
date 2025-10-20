@@ -1,9 +1,0 @@
-#TO - FIX#
-
-1.Selected Pet emotion to change - may be with CSS or something
-2.Clean 	=>	soup bubble animation
-	(mostly all button action need to improve UI)
-3. Sound ----------- ?
-4. Scroll Bar
-5. Back button
-6. still loading--------!
