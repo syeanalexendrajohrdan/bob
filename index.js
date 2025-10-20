@@ -53,6 +53,7 @@ function saveGameState() {
     localStorage.setItem('virtualPetGame', JSON.stringify(gameState));
   } catch (e) {
     console.error('Failed to save game state:', e);
+    console.error('Failed to save game state:', e);
   }
 }
 
