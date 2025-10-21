@@ -348,3 +348,34 @@ const style = document.createElement('style');
 style.textContent = additionalCSS;
 document.head.appendChild(style);
 
+/* -------------------- INITIALIZATION -------------------- */
+// Prevent space bar from scrolling page
+document.addEventListener('keydown', function(e) {
+  if(e.code === 'Space' && e.target === document.body) {
+    e.preventDefault();
+  }
+});
+
+// Initialize game on page load
+window.addEventListener('DOMContentLoaded', () => {
+  // Always start with pet selection screen
+  document.getElementById("petSelectScreen").style.display = "block";
+  document.getElementById("mainPlane").style.display = "none";
+  document.getElementById("miniGameContainer").style.display = "none";
+  
+  // Try to load saved state
+  if (loadGameState() && selectedEmoji) {
+    document.getElementById("petSelectScreen").style.display = "none";
+    document.getElementById("mainPlane").style.display = "flex";
+    document.getElementById("petDisplay").textContent = selectedEmoji;
+    updateStatus();
+  }
+});
+
+// Auto-save every 30 seconds
+setInterval(() => {
+  if (selectedEmoji) {
+    saveGameState();
+  }
+}, 30000);
+

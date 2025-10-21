@@ -1,18 +1,47 @@
 /* -------------------- MINI-GAME MANAGEMENT -------------------- */
 function cleanupGames() {
-  // Clear any existing intervals
-  if (window.jumpGameInterval) clearInterval(window.jumpGameInterval);
-  if (window.catchGameDropInterval) clearInterval(window.catchGameDropInterval);
+  // Clear catch game
+  if (window.catchGameIsActive !== undefined) {
+    window.catchGameIsActive = false;
+  }
+  if (window.catchGameDropInterval) {
+    clearInterval(window.catchGameDropInterval);
+    window.catchGameDropInterval = null;
+  }
+  
+  // Remove catch game event listeners
+  if (window.catchGameCanvas) {
+    if (window.catchGameMouseHandler) {
+      window.catchGameCanvas.removeEventListener('mousemove', window.catchGameMouseHandler);
+      window.catchGameMouseHandler = null;
+    }
+    if (window.catchGameTouchHandler) {
+      window.catchGameCanvas.removeEventListener('touchmove', window.catchGameTouchHandler);
+      window.catchGameTouchHandler = null;
+    }
+  }
+  
+  // Clear jump game
+  if (window.jumpGameInterval) {
+    clearInterval(window.jumpGameInterval);
+    window.jumpGameInterval = null;
+  }
   
   // Reset game states
-  window.jumpGameRunning = false;
-  window.catchGameIsActive = false;
+  if (window.jumpGameRunning !== undefined) {
+    window.jumpGameRunning = false;
+  }
   
-  // Remove event listeners
+  // Remove jump game event listeners
   document.removeEventListener("keydown", handleJumpGameKey);
-  const canvas = document.getElementById("jumpGameCanvas");
-  if (canvas) {
-    canvas.removeEventListener("touchstart", handleJumpGameTouch);
+  const jumpCanvas = document.getElementById("jumpGameCanvas");
+  if (jumpCanvas) {
+    jumpCanvas.removeEventListener("touchstart", handleJumpGameTouch);
+  }
+  
+  // Clear items arrays
+  if (window.catchGameItems) {
+    window.catchGameItems = [];
   }
 }
 

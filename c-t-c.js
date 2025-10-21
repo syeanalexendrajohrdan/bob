@@ -9,6 +9,8 @@ let catchGameDropSpeed = 2;
 let catchGameCanvas = null;
 let catchGameCtx = null;
 let catchGameIsActive = false;
+let catchGameMouseHandler = null;
+let catchGameTouchHandler = null;
 
 const catchGamePetFoodMap = {
   "🐶": "🦴",
@@ -72,8 +74,14 @@ function runCatchCountdown() {
 
 function startCatchGameLoop() {
   catchGameCanvas = document.getElementById("catchGameCanvas");
+  if (!catchGameCanvas) {
+    GameError.showError("Canvas not found!");
+    return;
+  }
+  
   catchGameCtx = catchGameCanvas.getContext("2d");
   
+  // Reset game state
   catchGameCaught = 0;
   catchGameItems = [];
   catchGamePlayerX = catchGameCanvas.width / 2;
@@ -81,22 +89,33 @@ function startCatchGameLoop() {
   catchGameRequired = 5 + (catchGameLevel * 3);
   catchGameDropSpeed = 2 + (catchGameLevel - 1) * 0.5;
 
+  // Remove old event listeners first
+  if (catchGameMouseHandler) {
+    catchGameCanvas.removeEventListener('mousemove', catchGameMouseHandler);
+  }
+  if (catchGameTouchHandler) {
+    catchGameCanvas.removeEventListener('touchmove', catchGameTouchHandler);
+  }
+
   // Fixed mouse movement with proper scaling
-  catchGameCanvas.addEventListener('mousemove', (e) => {
+  catchGameMouseHandler = (e) => {
+    if (!catchGameIsActive) return;
     const rect = catchGameCanvas.getBoundingClientRect();
     const scaleX = catchGameCanvas.width / rect.width;
-    const scaleY = catchGameCanvas.height / rect.height;
-    catchGamePlayerX = Math.max(18, Math.min((e.clientX - rect.left) * scaleX, catchGameCanvas.width - 18));
-  });
+    catchGamePlayerX = Math.max(25, Math.min((e.clientX - rect.left) * scaleX, catchGameCanvas.width - 25));
+  };
+  catchGameCanvas.addEventListener('mousemove', catchGameMouseHandler);
 
   // Fixed touch movement with proper scaling
-  catchGameCanvas.addEventListener('touchmove', (e) => {
+  catchGameTouchHandler = (e) => {
+    if (!catchGameIsActive) return;
     e.preventDefault();
     const rect = catchGameCanvas.getBoundingClientRect();
     const touch = e.touches[0];
     const scaleX = catchGameCanvas.width / rect.width;
-    catchGamePlayerX = Math.max(18, Math.min((touch.clientX - rect.left) * scaleX, catchGameCanvas.width - 18));
-  }, { passive: false });
+    catchGamePlayerX = Math.max(25, Math.min((touch.clientX - rect.left) * scaleX, catchGameCanvas.width - 25));
+  };
+  catchGameCanvas.addEventListener('touchmove', catchGameTouchHandler, { passive: false });
 
   startCatchDropInterval();
   requestAnimationFrame(runCatchGameLoop);
@@ -129,26 +148,31 @@ function startCatchDropInterval() {
 }
 
 function runCatchGameLoop() {
-  if (!catchGameIsActive) return;
+  if (!catchGameIsActive || !catchGameCanvas || !catchGameCtx) return;
 
   catchGameCtx.clearRect(0, 0, catchGameCanvas.width, catchGameCanvas.height);
 
   // Draw UI
   catchGameCtx.fillStyle = "#fff";
-  catchGameCtx.font = "16px Arial";
-  catchGameCtx.fillText(`Level: ${catchGameLevel}`, 10, 20);
-  catchGameCtx.fillText(`Caught: ${catchGameCaught}/${catchGameRequired}`, 10, 40);
+  catchGameCtx.font = "bold 18px Arial";
+  catchGameCtx.fillText(`Level: ${catchGameLevel}`, 10, 25);
+  catchGameCtx.fillText(`Caught: ${catchGameCaught}/${catchGameRequired}`, 10, 50);
 
   // Update items
-  for (let i = 0; i < catchGameItems.length; i++) {
+  for (let i = catchGameItems.length - 1; i >= 0; i--) {
     let item = catchGameItems[i];
     item.y += catchGameDropSpeed;
 
-    catchGameCtx.font = "24px serif";
+    // Draw item
+    catchGameCtx.font = "30px serif";
     catchGameCtx.fillText(item.emoji, item.x, item.y);
 
-    // Collision detection
-    if (item.y > catchGameCanvas.height - 40 && Math.abs(item.x - catchGamePlayerX) < 30) {
+    // Improved collision detection
+    const itemBottom = item.y;
+    const playerTop = catchGameCanvas.height - 50;
+    const horizontalDistance = Math.abs(item.x - catchGamePlayerX);
+    
+    if (itemBottom >= playerTop && itemBottom <= catchGameCanvas.height - 10 && horizontalDistance < 40) {
       if (item.isGood) {
         catchGameCaught++;
       } else {
@@ -156,16 +180,18 @@ function runCatchGameLoop() {
         return;
       }
       catchGameItems.splice(i, 1);
-      i--;
+      continue;
+    }
+
+    // Remove items that fell off screen
+    if (item.y > catchGameCanvas.height + 30) {
+      catchGameItems.splice(i, 1);
     }
   }
 
-  // Remove items that fell off screen
-  catchGameItems = catchGameItems.filter(item => item.y < catchGameCanvas.height + 30);
-
   // Draw player
-  catchGameCtx.font = "36px serif";
-  catchGameCtx.fillText(selectedEmoji || "🐶", catchGamePlayerX - 18, catchGameCanvas.height - 10);
+  catchGameCtx.font = "45px serif";
+  catchGameCtx.fillText(selectedEmoji || "🐶", catchGamePlayerX - 22, catchGameCanvas.height - 10);
 
   // Check win condition
   if (catchGameCaught >= catchGameRequired) {
@@ -178,21 +204,43 @@ function runCatchGameLoop() {
 
 function endCatchGame(success) {
   catchGameIsActive = false;
-  clearInterval(catchGameDropInterval);
+  
+  // Clear interval
+  if (catchGameDropInterval) {
+    clearInterval(catchGameDropInterval);
+    catchGameDropInterval = null;
+  }
+
+  // Remove event listeners
+  if (catchGameCanvas) {
+    if (catchGameMouseHandler) {
+      catchGameCanvas.removeEventListener('mousemove', catchGameMouseHandler);
+      catchGameMouseHandler = null;
+    }
+    if (catchGameTouchHandler) {
+      catchGameCanvas.removeEventListener('touchmove', catchGameTouchHandler);
+      catchGameTouchHandler = null;
+    }
+  }
+
+  document.querySelector('.miniGameHeader').style.display = 'flex';
 
   const messageEl = document.getElementById("catchGameMessage");
   if (!messageEl) return;
 
   messageEl.style.display = "block";
   messageEl.innerHTML = `
-    <p style="margin-bottom: 20px; font-size: 1.2em;">
-      ${success ? `🎉 Level ${catchGameLevel} Completed!` : `💥 You caught a bad emoji! Try Again!`}
+    <p style="margin-bottom: 20px; font-size: 1.3em; font-weight: bold;">
+      ${success ? `🎉 Level ${catchGameLevel} Completed! 🎉` : `💥 Game Over! Try Again!`}
     </p>
-    <div style="display: flex; justify-content: center; gap: 10px;">
-      <button onclick="startCatchGame()">
+    <p style="margin-bottom: 20px; font-size: 1em;">
+      You caught ${catchGameCaught}/${catchGameRequired} items!
+    </p>
+    <div style="display: flex; justify-content: center; gap: 15px;">
+      <button onclick="startCatchGame()" style="padding: 10px 20px; font-size: 1.1em; cursor: pointer; border: none; border-radius: 8px; background: linear-gradient(145deg, #4ecdc4, #45b7d1); color: white;">
         🔁 ${success ? "Next Level" : "Try Again"}
       </button>
-      <button onclick="exitMiniGame()">
+      <button onclick="exitMiniGame()" style="padding: 10px 20px; font-size: 1.1em; cursor: pointer; border: none; border-radius: 8px; background: linear-gradient(145deg, #ff6b6b, #ee5a6f); color: white;">
         🔙 Back
       </button>
     </div>
@@ -210,61 +258,4 @@ function endCatchGame(success) {
   checkLevelUp();
   saveGameState();
 }
-
-/* -------------------- INITIALIZATION -------------------- */
-// Prevent space bar from scrolling page
-document.addEventListener('keydown', function(e) {
-  if(e.code === 'Space' && e.target === document.body) {
-    e.preventDefault();
-  }
-});
-
-// Initialize game on page load
-window.addEventListener('DOMContentLoaded', () => {
-  // Always start with pet selection screen hidden and main game hidden
-  document.getElementById("petSelectScreen").style.display = "block";
-  document.getElementById("mainPlane").style.display = "none";
-  document.getElementById("miniGameContainer").style.display = "none";
-  
-  // Try to load saved state
-  if (loadGameState() && selectedEmoji) {
-    document.getElementById("petSelectScreen").style.display = "none";
-    document.getElementById("mainPlane").style.display = "flex";
-    document.getElementById("petDisplay").textContent = selectedEmoji;
-    updateStatus();
-  }
-});
-
-// Auto-save every 30 seconds
-setInterval(saveGameState, 30000);
-
-
-
-/* -------------------- CSS STYLES -------------------- */
-const additionalCSS = `
-  /* Prevent scroll bars in mini-games */
-  #miniGameContainer {
-    overflow: hidden !important;
-  }
-  
-  #miniGameContent {
-    overflow: hidden !important;
-    max-height: 80vh;
-  }
-  
-  #catchGameScreen, #jumpGameScreen {
-    overflow: hidden !important;
-  }
-  
-  canvas {
-    max-width: 100% !important;
-    max-height: 70vh !important;
-    object-fit: contain;
-  }
-`;
-
-// Add the CSS to the document
-const style = document.createElement('style');
-style.textContent = additionalCSS;
-document.head.appendChild(style);
 
