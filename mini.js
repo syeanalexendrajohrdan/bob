@@ -64,7 +64,7 @@ function showMiniGameSelection() {
   setMiniGameContent(`
     <div class="gameSelectMenu">
       <button onclick="startJumpGame()" class="game-choice">
-        <span class="game-icon">🎾</span>
+        <span class="game-icon">🦘</span>
         <div class="game-info">
           <div class="game-title">Jump the Jump</div>
           <div class="game-desc">Help your pet avoid obstacles and gaps!</div>
@@ -82,6 +82,13 @@ function showMiniGameSelection() {
         <div class="game-info">
           <div class="game-title">Tic-Tac-Toe</div>
           <div class="game-desc">Battle the skull! Can you win?</div>
+        </div>
+      </button>
+      <button onclick="startMemoryGame()" class="game-choice">
+        <span class="game-icon">🧠</span>
+        <div class="game-info">
+          <div class="game-title">Memory Match</div>
+          <div class="game-desc">Is your memory good enough?</div>
         </div>
       </button>
     </div>
